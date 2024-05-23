@@ -30,10 +30,10 @@ interface TableParams {
 function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const searchQuery = searchParams.get("search") || "Theory of Everything";
-  const feature = searchParams.get("feature") || "title";
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = parseInt(searchParams.get("limit") || "10", 10);
+  const [searchQuery, setSearchQuery] = useState<string>("Theory of Everything");
+  const [feature, setFeature] = useState<string>("title");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const [tableParams, setTableParams] = useState<TableParams>({
     pagination: {
@@ -127,7 +127,11 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
 
   useEffect(() => {
     mutate(data);
-  }, [searchQuery, currentPage, pageSize, mutate, feature]);
+    setSearchQuery(searchParams.get("search") || "Theory of Everything");
+    setFeature(searchParams.get("feature") || "title");
+    setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
+    setPageSize(parseInt(searchParams.get("limit") || "10", 10));
+  }, [searchQuery, currentPage, pageSize, mutate, feature, searchParams]);
 
   const resp: Array<DataType> = data?.docs.map((book: any, index: number) => ({
     key: Number((currentPage - 1) * pageSize + index + 1),
