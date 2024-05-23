@@ -5,6 +5,7 @@ import { Result, Spin, Rate, Table, Tag, Button } from "antd";
 import type { TableProps, GetProp } from "antd";
 import { useSearchParams, useRouter } from "next/navigation";
 import csvDownload from "json-to-csv-export";
+import { Suspense } from 'react'
 
 type TablePaginationConfig = Exclude<
   GetProp<TableProps, "pagination">,
@@ -127,10 +128,11 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
 
   useEffect(() => {
     mutate(data);
-    setSearchQuery(searchParams.get("search") || "Theory of Everything");
-    setFeature(searchParams.get("feature") || "title");
-    setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
-    setPageSize(parseInt(searchParams.get("limit") || "10", 10));
+
+      setSearchQuery(searchParams.get("search") || "Theory of Everything");
+      setFeature(searchParams.get("feature") || "title");
+      setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
+      setPageSize(parseInt(searchParams.get("limit") || "10", 10));
   }, [searchQuery, currentPage, pageSize, mutate, feature, searchParams]);
 
   const resp: Array<DataType> = data?.docs.map((book: any, index: number) => ({
@@ -160,7 +162,8 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
 
   return (
     <div className="w-full h-full flex justify-center">
-      {isLoading ? (
+      <Suspense fallback="loading">
+              {isLoading ? (
         <Spin className="mt-20" />
       ) : resp.length > 0 ? (
         <>
@@ -190,6 +193,8 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
           subTitle="Sorry, we couldn't find any results for your search."
         />
       )}
+      </Suspense>
+
     </div>
   );
 }
