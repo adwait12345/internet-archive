@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import searchBooks from "@/hooks/searchBooks";
 import { Result, Spin, Rate, Table, Tag, Button } from "antd";
 import type { TableProps, GetProp } from "antd";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import csvDownload from "json-to-csv-export";
-import { Suspense } from 'react'
 
 type TablePaginationConfig = Exclude<
   GetProp<TableProps, "pagination">,
@@ -29,6 +28,7 @@ interface TableParams {
 }
 
 function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("Theory of Everything");
@@ -63,21 +63,18 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
       dataIndex: "author_name",
       key: "author_name",
       render: (author_name: string) => {
-        console.log(author_name[0]);
         let res = Array.from(author_name[0].toString().split(","));
-
-        return res?.map((name: any, idx) => {
-          return (
-            <p
-              className="cursor-pointer hover:underline"
-              onClick={() =>
-                setAuthor({ author: name, authorId: author_name[1][idx] })
-              }
-            >
-              {name}
-            </p>
-          );
-        });
+        return res?.map((name: any, idx) => (
+          <p
+            className="cursor-pointer hover:underline"
+            onClick={() =>
+              setAuthor({ author: name, authorId: author_name[1][idx] })
+            }
+            key={idx}
+          >
+            {name}
+          </p>
+        ));
       },
     },
     {
@@ -96,8 +93,8 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
       width: "30%",
       render: (subject: string) => {
         let res = Array.from(subject.toString().split(","));
-        return res?.map((el: string) => (
-          <Tag color="blue" key={el}>
+        return res?.map((el: string, idx) => (
+          <Tag color="blue" key={idx}>
             {el}
           </Tag>
         ));
@@ -129,10 +126,10 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
   useEffect(() => {
     mutate(data);
 
-      setSearchQuery(searchParams.get("search") || "Theory of Everything");
-      setFeature(searchParams.get("feature") || "title");
-      setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
-      setPageSize(parseInt(searchParams.get("limit") || "10", 10));
+    setSearchQuery(searchParams.get("search") || "Theory of Everything");
+    setFeature(searchParams.get("feature") || "title");
+    setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
+    setPageSize(parseInt(searchParams.get("limit") || "10", 10));
   }, [searchQuery, currentPage, pageSize, mutate, feature, searchParams]);
 
   const resp: Array<DataType> = data?.docs.map((book: any, index: number) => ({
@@ -162,39 +159,38 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
 
   return (
     <div className="w-full h-full flex justify-center">
-      <Suspense fallback="loading">
-              {isLoading ? (
-        <Spin className="mt-20" />
-      ) : resp.length > 0 ? (
-        <>
-          <Table
-            columns={columns}
-            dataSource={resp}
-            pagination={tableParams.pagination}
-            onChange={handleTableChange}
-            showSorterTooltip={true}
+      <Suspense fallback={<Spin className="mt-20" />}>
+        {isLoading ? (
+          <Spin className="mt-20" />
+        ) : resp.length > 0 ? (
+          <>
+            <Table
+              columns={columns}
+              dataSource={resp}
+              pagination={tableParams.pagination}
+              onChange={handleTableChange}
+              showSorterTooltip={true}
+            />
+
+            {resp && (
+              <Button
+                type="default"
+                onClick={() => csvDownload({ data: resp, filename: "book" })}
+                className=" absolute right-4 bottom-[5px] font-semibold"
+              >
+                Download CSV
+              </Button>
+            )}
+          </>
+        ) : (
+          <Result
+            status="404"
+            className="mt-20"
+            title="No results found"
+            subTitle="Sorry, we couldn't find any results for your search."
           />
-
-          {resp && (
-            <Button
-              type="default"
-              onClick={() => csvDownload({ data: resp, filename: "book" })}
-              className=" absolute right-4 bottom-[5px] font-semibold"
-            >
-              Download CSV
-            </Button>
-          )}
-        </>
-      ) : (
-        <Result
-          status="404"
-          className="mt-20"
-          title="No results found"
-          subTitle="Sorry, we couldn't find any results for your search."
-        />
-      )}
+        )}
       </Suspense>
-
     </div>
   );
 }
