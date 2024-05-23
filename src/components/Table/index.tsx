@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import searchBooks from "@/hooks/searchBooks";
 import { Result, Spin, Rate, Table, Tag, Button } from "antd";
 import type { TableProps, GetProp } from "antd";
-import { useSearchParams, useRouter, useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import csvDownload from "json-to-csv-export";
 
 type TablePaginationConfig = Exclude<
@@ -28,11 +28,10 @@ interface TableParams {
 }
 
 function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
-
   const searchParams = useSearchParams();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("Theory of Everything");
-  const [feature, setFeature] = useState<string>("title");
+  const [features, setFeature] = useState<string>("title");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
@@ -120,17 +119,19 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
     searchQuery,
     currentPage,
     pageSize,
-    feature
+    features
   );
 
   useEffect(() => {
-    mutate(data);
-
     setSearchQuery(searchParams.get("search") || "Theory of Everything");
     setFeature(searchParams.get("feature") || "title");
     setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
     setPageSize(parseInt(searchParams.get("limit") || "10", 10));
-  }, [searchQuery, currentPage, pageSize, mutate, feature, searchParams]);
+  }, [searchParams]);
+
+  useEffect(() => {
+    mutate(data);
+  }, [data, mutate]);
 
   const resp: Array<DataType> = data?.docs.map((book: any, index: number) => ({
     key: Number((currentPage - 1) * pageSize + index + 1),
@@ -153,13 +154,12 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
     });
 
     router.push(
-      `/?search=${searchQuery}&page=${pagination.current}&limit=${pagination.pageSize}&feature=${feature}`
+      `/?search=${searchQuery}&page=${pagination.current}&limit=${pagination.pageSize}&feature=${features}`
     );
   };
 
   return (
     <div className="w-full h-full flex justify-center">
-      <Suspense fallback={<Spin className="mt-20" />}>
         {isLoading ? (
           <Spin className="mt-20" />
         ) : resp.length > 0 ? (
@@ -176,7 +176,7 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
               <Button
                 type="default"
                 onClick={() => csvDownload({ data: resp, filename: "book" })}
-                className=" absolute right-4 bottom-[5px] font-semibold"
+                className="absolute right-4 bottom-[5px] font-semibold"
               >
                 Download CSV
               </Button>
@@ -190,7 +190,6 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
             subTitle="Sorry, we couldn't find any results for your search."
           />
         )}
-      </Suspense>
     </div>
   );
 }

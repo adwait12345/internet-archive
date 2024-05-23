@@ -2,7 +2,7 @@
 import Navbar from "@/components/Navbar"
 import Sidebar from "@/components/Sidebar"
 import Tables from "@/components/Table"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 
 export interface Author {
   author: string;
@@ -25,8 +25,9 @@ function Home() {
           <Sidebar author={author} setAuthor={setAuthor} />
           </div>
           <div className="w-[87.5%] h-full no-scrollbar overflow-y-auto ">
-          
+          <Suspense fallback={<div>Loading...</div>}>
          <Tables author={author} setAuthor={setAuthor} />
+          </Suspense>
 </div>
         </div>
       </div>
