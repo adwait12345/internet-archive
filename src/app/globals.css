@@ -2,32 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
+/*
+    https://github.com/tailwindlabs/tailwindcss/discussions/2394
+    https://github.com/tailwindlabs/tailwindcss/pull/5732
+*/
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+    /* Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
 }
+
+.ant-table-thead{
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.ant-table-pagination{
+  border-top: 1px solid #e5e7eb !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  background: floralwhite !important;
+  padding: 5px !important;
+  align-items: flex-start !important;
+  padding-right: 150px !important;
+
+}
+
+.ant-table-footer{
+  position: sticky !important;
+  bottom: 42.8px !important;
+  background: transparent !important;
+}
+
