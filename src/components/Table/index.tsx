@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import searchBooks from "@/hooks/searchBooks";
 import { Result, Spin, Rate, Table, Tag, Button } from "antd";
 import type { TableProps, GetProp } from "antd";
@@ -14,7 +14,7 @@ type TablePaginationConfig = Exclude<
 interface DataType {
   key: string;
   title: string;
-  author_name: string;
+  author_name: string | string[];
   first_publish_year: number;
   subject: string;
   ratings_average: number;
@@ -61,13 +61,19 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
       title: "Author Name",
       dataIndex: "author_name",
       key: "author_name",
-      render: (author_name: string) => {
-        let res = Array.from(author_name[0].toString().split(","));
+      render: (author_name: string | string[]) => {
+        if (typeof author_name === 'string') {
+          author_name = [author_name];
+        }
+        
+        if (!author_name || author_name.length === 0) return null;
+        
+        let res = Array.from(author_name[0]?.toString().split(","));
         return res?.map((name: any, idx) => (
           <p
             className="cursor-pointer hover:underline"
             onClick={() =>
-              setAuthor({ author: name, authorId: author_name[1][idx] })
+              setAuthor({ author: name, authorId: author_name[1]?.[idx] })
             }
             key={idx}
           >
@@ -91,7 +97,7 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
       dataIndex: "subject",
       width: "30%",
       render: (subject: string) => {
-        let res = Array.from(subject.toString().split(","));
+        let res = Array.from(subject?.toString().split(","));
         return res?.map((el: string, idx) => (
           <Tag color="blue" key={idx}>
             {el}
@@ -136,7 +142,7 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
   const resp: Array<DataType> = data?.docs.map((book: any, index: number) => ({
     key: Number((currentPage - 1) * pageSize + index + 1),
     title: book.title || "N/A",
-    author_name: [book.author_name, book.author_key] || "N/A",
+    author_name: book.author_name ? [book.author_name, book.author_key] : ["N/A"],
     first_publish_year: book.first_publish_year || "N/A",
     subject: book.subject || "N/A",
     ratings_average: book.ratings_average || 0,
@@ -160,6 +166,7 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
 
   return (
     <div className="w-full h-full flex justify-center">
+      <Suspense fallback={<Spin className="mt-20" />}>
         {isLoading ? (
           <Spin className="mt-20" />
         ) : resp.length > 0 ? (
@@ -190,6 +197,7 @@ function Tables({ author, setAuthor }: { author: any; setAuthor: any }) {
             subTitle="Sorry, we couldn't find any results for your search."
           />
         )}
+      </Suspense>
     </div>
   );
 }
